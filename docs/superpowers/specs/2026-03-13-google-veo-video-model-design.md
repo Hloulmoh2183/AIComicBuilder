@@ -22,24 +22,24 @@ VeoProvider implements VideoProvider
 **Internal flow:**
 1. `clampDuration(duration)` — maps any integer to nearest of `[4, 6, 8]`; ties round down (5→4, 7→6)
 2. Read `firstFrame` and `lastFrame` files → base64 `{ imageBytes, mimeType }`
-3. Call SDK with explicit shape:
+3. Call SDK with explicit shape — `prompt` and `image` are top-level `GenerateVideosParameters` fields (not nested under `source`); `lastFrame`, `durationSeconds`, and `aspectRatio` go inside `config`:
    ```typescript
    ai.models.generateVideos({
      model,
-     prompt,
-     image: firstFrameData,          // Image_2, top-level
+     prompt,                          // top-level GenerateVideosParameters field
+     image: firstFrameData,           // Image_2, top-level
      config: {
-       lastFrame: lastFrameData,      // Image_2, inside config
+       lastFrame: lastFrameData,       // Image_2, inside GenerateVideosConfig
        durationSeconds,
        aspectRatio,
      }
    })
    ```
-4. Poll `ai.operations.getVideosOperation({ operation })` every 10s, max 60 attempts (10 min timeout):
+4. Poll `ai.operations.getVideosOperation({ operation })` every 10s, max 60 attempts (10 min timeout). All checks are evaluated only when `operation.done === true`:
    - `operation.done && operation.error` → throw with error detail
+   - `operation.done && operation.response?.raiMediaFilteredCount > 0` → throw with RAI reason
    - `operation.done && operation.response?.generatedVideos?.[0]` → proceed
-   - `operation.response?.raiMediaFilteredCount > 0` → throw with RAI reason
-5. `await ai.files.download({ file: generatedVideos[0].video, downloadPath })` → save to `uploads/videos/<ulid>.mp4`
+5. Null-guard: if `generatedVideos[0].video` is absent → throw `"No video URI returned from Veo"`; otherwise `await ai.files.download({ file: generatedVideos[0].video, downloadPath })` → save to `uploads/videos/<ulid>.mp4`
 6. Return local file path
 
 ### Modified File: `src/lib/ai/provider-factory.ts`
@@ -75,6 +75,9 @@ No other files require changes. Note: `src/lib/ai/setup.ts` initializes default 
 - **Generation failure**: `operation.done && operation.error` → throw with error detail (SDK surfaces HTTP errors through `operation.error`, not via raw HTTP status codes)
 - **RAI filter**: `raiMediaFilteredCount > 0` → throw with `raiMediaFilteredReasons` included in message
 - **Missing video**: `done` but no `generatedVideos[0]` → throws `"No video returned from Veo"`
+- **Missing video URI**: `generatedVideos[0]` present but `.video` absent → throws `"No video URI returned from Veo"`
+
+Note: `uploadDir` is accepted in the constructor but not passed by `createVideoProvider` (intentional — falls back to `process.env.UPLOAD_DIR || "./uploads"`, matching `SeedanceProvider` behavior).
 
 ## User Configuration
 
