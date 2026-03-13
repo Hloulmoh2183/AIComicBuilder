@@ -20,11 +20,26 @@ VeoProvider implements VideoProvider
 ```
 
 **Internal flow:**
-1. `clampDuration(duration)` — maps any integer to nearest of `[4, 6, 8]`
+1. `clampDuration(duration)` — maps any integer to nearest of `[4, 6, 8]`; ties round down (5→4, 7→6)
 2. Read `firstFrame` and `lastFrame` files → base64 `{ imageBytes, mimeType }`
-3. `ai.models.generateVideos({ model, prompt, image: firstFrameData, config: { lastFrame: lastFrameData, durationSeconds, aspectRatio } })`
-4. Poll `ai.operations.getVideosOperation()` every 10s, max 60 attempts (10 min timeout)
-5. `ai.files.download(generatedVideos[0].video, { downloadPath })` → save to `uploads/videos/<ulid>.mp4`
+3. Call SDK with explicit shape:
+   ```typescript
+   ai.models.generateVideos({
+     model,
+     prompt,
+     image: firstFrameData,          // Image_2, top-level
+     config: {
+       lastFrame: lastFrameData,      // Image_2, inside config
+       durationSeconds,
+       aspectRatio,
+     }
+   })
+   ```
+4. Poll `ai.operations.getVideosOperation({ operation })` every 10s, max 60 attempts (10 min timeout):
+   - `operation.done && operation.error` → throw with error detail
+   - `operation.done && operation.response?.generatedVideos?.[0]` → proceed
+   - `operation.response?.raiMediaFilteredCount > 0` → throw with RAI reason
+5. `await ai.files.download({ file: generatedVideos[0].video, downloadPath })` → save to `uploads/videos/<ulid>.mp4`
 6. Return local file path
 
 ### Modified File: `src/lib/ai/provider-factory.ts`
@@ -36,7 +51,7 @@ case "gemini":
   return new VeoProvider({ apiKey, baseUrl, model });
 ```
 
-No other files require changes.
+No other files require changes. Note: `src/lib/ai/setup.ts` initializes default providers via env vars (e.g. `SEEDANCE_API_KEY`). Adding a `VEO_API_KEY` env-var path to `setup.ts` for default Veo configuration is **out of scope** for this integration — users configure Veo through the Settings UI.
 
 ## Supported Models
 
@@ -57,9 +72,9 @@ No other files require changes.
 ## Error Handling
 
 - **Timeout**: 60 × 10s poll attempts → throws `"Veo generation timed out after 10 minutes"`
-- **API failure**: Non-ok responses throw with status + body
-- **Generation failure**: Operation state `FAILED` throws with error detail
-- **Missing video**: No `generatedVideos[0]` throws `"No video returned from Veo"`
+- **Generation failure**: `operation.done && operation.error` → throw with error detail (SDK surfaces HTTP errors through `operation.error`, not via raw HTTP status codes)
+- **RAI filter**: `raiMediaFilteredCount > 0` → throw with `raiMediaFilteredReasons` included in message
+- **Missing video**: `done` but no `generatedVideos[0]` → throws `"No video returned from Veo"`
 
 ## User Configuration
 
