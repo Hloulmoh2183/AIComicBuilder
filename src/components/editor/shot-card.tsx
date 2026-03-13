@@ -185,6 +185,9 @@ export function ShotCard({
           cameraDirection,
           duration: editDuration,
           characterDescriptions,
+          dialogues: dialogues.length > 0
+            ? dialogues.map((d) => ({ characterName: d.characterName, text: d.text }))
+            : undefined,
         })
       : prompt;
     navigator.clipboard.writeText(videoPrompt);
