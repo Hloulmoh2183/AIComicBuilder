@@ -63,6 +63,7 @@ const statusVariant: Record<string, "outline" | "success" | "warning" | "destruc
   failed: "destructive",
 };
 
+
 export function ShotCard({
   id,
   projectId,
@@ -107,7 +108,10 @@ export function ShotCard({
     generatingVideo ||
     (!!batchGeneratingVideo && !!firstFrame && !!lastFrame && !videoUrl) ||
     (!!batchGeneratingReferenceVideo && generationMode === "reference" && !videoUrl);
-  const variant = statusVariant[status] || "outline";
+  const variant =
+    generationMode === "reference" && status === "completed"
+      ? "default"
+      : statusVariant[status] || "outline";
 
   async function patchShot(fields: Record<string, unknown>) {
     await apiFetch(`/api/projects/${projectId}/shots/${id}`, {
@@ -406,35 +410,38 @@ export function ShotCard({
             />
           </div>
 
-          {/* Start Frame Description */}
-          <div className="rounded-xl bg-blue-50/50 p-3">
-            <p className="mb-1.5 text-[10px] font-semibold uppercase tracking-[0.15em] text-blue-600">
-              {t("shot.startFrame")}
-            </p>
-            <Textarea
-              value={editStartFrame}
-              onChange={(e) => setEditStartFrame(e.target.value)}
-              onBlur={() => patchShot({ startFrameDesc: editStartFrame })}
-              rows={2}
-              className="rounded-none border-0 bg-transparent p-0 text-sm focus-visible:ring-0"
-              placeholder="Start frame description..."
-            />
-          </div>
+          {/* Start / End Frame Descriptions — keyframe mode only */}
+          {generationMode !== "reference" && (
+            <>
+              <div className="rounded-xl bg-blue-50/50 p-3">
+                <p className="mb-1.5 text-[10px] font-semibold uppercase tracking-[0.15em] text-blue-600">
+                  {t("shot.startFrame")}
+                </p>
+                <Textarea
+                  value={editStartFrame}
+                  onChange={(e) => setEditStartFrame(e.target.value)}
+                  onBlur={() => patchShot({ startFrameDesc: editStartFrame })}
+                  rows={2}
+                  className="rounded-none border-0 bg-transparent p-0 text-sm focus-visible:ring-0"
+                  placeholder="Start frame description..."
+                />
+              </div>
 
-          {/* End Frame Description */}
-          <div className="rounded-xl bg-amber-50/50 p-3">
-            <p className="mb-1.5 text-[10px] font-semibold uppercase tracking-[0.15em] text-amber-600">
-              {t("shot.endFrame")}
-            </p>
-            <Textarea
-              value={editEndFrame}
-              onChange={(e) => setEditEndFrame(e.target.value)}
-              onBlur={() => patchShot({ endFrameDesc: editEndFrame })}
-              rows={2}
-              className="rounded-none border-0 bg-transparent p-0 text-sm focus-visible:ring-0"
-              placeholder="End frame description..."
-            />
-          </div>
+              <div className="rounded-xl bg-amber-50/50 p-3">
+                <p className="mb-1.5 text-[10px] font-semibold uppercase tracking-[0.15em] text-amber-600">
+                  {t("shot.endFrame")}
+                </p>
+                <Textarea
+                  value={editEndFrame}
+                  onChange={(e) => setEditEndFrame(e.target.value)}
+                  onBlur={() => patchShot({ endFrameDesc: editEndFrame })}
+                  rows={2}
+                  className="rounded-none border-0 bg-transparent p-0 text-sm focus-visible:ring-0"
+                  placeholder="End frame description..."
+                />
+              </div>
+            </>
+          )}
 
           {/* Motion Script */}
           <div className="rounded-xl bg-emerald-50/50 p-3">
@@ -495,44 +502,50 @@ export function ShotCard({
               )}
               {rewritingText ? t("common.generating") : t("shot.rewriteText")}
             </Button>
-            <div className="h-4 w-px bg-[--border-subtle]" />
-            <InlineModelPicker capability="image" />
-            <Button
-              size="sm"
-              variant="outline"
-              onClick={handleGenerateFrames}
-              disabled={isGeneratingFrames || isGeneratingVideo || rewritingText}
-            >
-              {isGeneratingFrames ? (
-                <Loader2 className="h-3.5 w-3.5 animate-spin" />
-              ) : (
-                <ImageIcon className="h-3.5 w-3.5" />
-              )}
-              {isGeneratingFrames ? t("common.generating") : t("project.generateFrames")}
-            </Button>
+            {generationMode !== "reference" && (
+              <>
+                <div className="h-4 w-px bg-[--border-subtle]" />
+                <InlineModelPicker capability="image" />
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={handleGenerateFrames}
+                  disabled={isGeneratingFrames || isGeneratingVideo || rewritingText}
+                >
+                  {isGeneratingFrames ? (
+                    <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                  ) : (
+                    <ImageIcon className="h-3.5 w-3.5" />
+                  )}
+                  {isGeneratingFrames ? t("common.generating") : t("project.generateFrames")}
+                </Button>
+              </>
+            )}
 
-            {firstFrame && lastFrame && (
+            {(generationMode === "reference" || (firstFrame && lastFrame)) && (
               <>
                 <InlineModelPicker capability="video" />
                 <VideoRatioPicker value={videoRatio} onChange={setVideoRatio} />
-                <div className="flex items-center gap-1.5 rounded-lg border border-[--border-subtle] bg-white px-2.5 py-1">
-                  <Clock className="h-3.5 w-3.5 text-[--text-muted]" />
-                  <input
-                    type="number"
-                    min={5}
-                    max={15}
-                    value={editDuration}
-                    onChange={(e) => {
-                      const v = Math.min(15, Math.max(5, Number(e.target.value)));
-                      handleDurationChange(v);
-                    }}
-                    className="w-10 bg-transparent text-center text-[11px] font-medium text-[--text-primary] outline-none"
-                  />
-                  <span className="text-[11px] text-[--text-muted]">s</span>
-                </div>
+                {generationMode !== "reference" && (
+                  <div className="flex items-center gap-1.5 rounded-lg border border-[--border-subtle] bg-white px-2.5 py-1">
+                    <Clock className="h-3.5 w-3.5 text-[--text-muted]" />
+                    <input
+                      type="number"
+                      min={5}
+                      max={15}
+                      value={editDuration}
+                      onChange={(e) => {
+                        const v = Math.min(15, Math.max(5, Number(e.target.value)));
+                        handleDurationChange(v);
+                      }}
+                      className="w-10 bg-transparent text-center text-[11px] font-medium text-[--text-primary] outline-none"
+                    />
+                    <span className="text-[11px] text-[--text-muted]">s</span>
+                  </div>
+                )}
                 <Button
                   size="sm"
-                  onClick={handleGenerateVideo}
+                  onClick={generationMode === "reference" ? handleGenerateReferenceVideo : handleGenerateVideo}
                   disabled={isGeneratingFrames || isGeneratingVideo}
                 >
                   {isGeneratingVideo ? (
