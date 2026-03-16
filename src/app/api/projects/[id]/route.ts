@@ -79,11 +79,21 @@ export async function PATCH(
     idea: string;
     script: string;
     status: "draft" | "processing" | "completed";
+    generationMode: "keyframe" | "reference";
   }>;
+
+  const { title, idea, script, status, generationMode } = body;
 
   const [updated] = await db
     .update(projects)
-    .set({ ...body, updatedAt: new Date() })
+    .set({
+      ...(title !== undefined && { title }),
+      ...(idea !== undefined && { idea }),
+      ...(script !== undefined && { script }),
+      ...(status !== undefined && { status }),
+      ...(generationMode !== undefined && { generationMode }),
+      updatedAt: new Date(),
+    })
     .where(eq(projects.id, id))
     .returning();
 

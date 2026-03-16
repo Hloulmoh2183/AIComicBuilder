@@ -39,6 +39,7 @@ interface Project {
   script: string;
   status: string;
   finalVideoUrl: string | null;
+  generationMode: string;
   characters: Character[];
   shots: Shot[];
 }
