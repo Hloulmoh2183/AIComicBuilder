@@ -1,26 +1,39 @@
 export function buildVideoPrompt(params: {
-  sceneDescription: string;
-  motionScript: string;
+  videoScript: string;
   cameraDirection: string;
+  startFrameDesc?: string;
+  endFrameDesc?: string;
+  sceneDescription?: string;       // kept for call-site compatibility, not used in output
   duration?: number;
-  characterDescriptions?: string;
+  characterDescriptions?: string;  // kept for call-site compatibility, not used in output
   dialogues?: Array<{ characterName: string; text: string }>;
 }): string {
-  // motionScript contains per-segment camera directions — no need to repeat overall cameraDirection.
-  // Reformat segments onto separate lines for readability.
-  const segments = params.motionScript
-    .split(/(?=\d+[-–]\d+s[：:])/i)
-    .map((s) => s.trim())
-    .filter(Boolean);
+  const lines: string[] = [];
 
-  const motionPart = segments.length > 1 ? segments.join("\n") : params.motionScript.trim();
+  lines.push(`Smoothly interpolate from the first frame to the last frame.`);
+  lines.push(``);
+  lines.push(`[MOTION]`);
+  lines.push(params.videoScript);
+  lines.push(``);
+  lines.push(`[CAMERA]`);
+  lines.push(params.cameraDirection);
 
-  const dialoguePart = params.dialogues?.length
-    ? "\nDialogue (spoken aloud by characters):\n" +
-      params.dialogues
-        .map((d) => `- ${d.characterName} says: "${d.text}"`)
-        .join("\n")
-    : "";
+  const hasStart = !!params.startFrameDesc;
+  const hasEnd = !!params.endFrameDesc;
+  if (hasStart || hasEnd) {
+    lines.push(``);
+    lines.push(`[FRAME ANCHORS]`);
+    if (hasStart) lines.push(`Opening frame: ${params.startFrameDesc}`);
+    if (hasEnd) lines.push(`Closing frame: ${params.endFrameDesc}`);
+  }
 
-  return `${motionPart}\nCamera: ${params.cameraDirection}${dialoguePart}`;
+  if (params.dialogues?.length) {
+    lines.push(``);
+    lines.push(`[DIALOGUE]`);
+    for (const d of params.dialogues) {
+      lines.push(`- ${d.characterName} says: "${d.text}"`);
+    }
+  }
+
+  return lines.join("\n");
 }
