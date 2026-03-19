@@ -7,7 +7,7 @@ export function buildReferenceVideoPrompt(params: {
   videoScript: string;
   cameraDirection: string;
   duration?: number;
-  dialogues?: Array<{ characterName: string; text: string }>;
+  dialogues?: Array<{ characterName: string; text: string; offscreen?: boolean; visualHint?: string }>;
 }): string {
   const lines: string[] = [];
 
@@ -24,7 +24,12 @@ export function buildReferenceVideoPrompt(params: {
   if (params.dialogues?.length) {
     lines.push(``);
     for (const d of params.dialogues) {
-      lines.push(`【对白口型】${d.characterName}: "${d.text}"`);
+      if (d.offscreen) {
+        lines.push(`【画外音】${d.characterName}: "${d.text}"`);
+      } else {
+        const label = d.visualHint ? `${d.characterName}（${d.visualHint}）` : d.characterName;
+        lines.push(`【对白口型】${label}: "${d.text}"`);
+      }
     }
   }
 
@@ -38,7 +43,7 @@ export function buildVideoPrompt(params: {
   endFrameDesc?: string;
   sceneDescription?: string;       // kept for call-site compatibility, not used in output
   duration?: number;
-  dialogues?: Array<{ characterName: string; text: string }>;
+  dialogues?: Array<{ characterName: string; text: string; offscreen?: boolean; visualHint?: string }>;
 }): string {
   const lines: string[] = [];
 
@@ -67,7 +72,12 @@ export function buildVideoPrompt(params: {
   if (params.dialogues?.length) {
     lines.push(``);
     for (const d of params.dialogues) {
-      lines.push(`【对白口型】${d.characterName}: "${d.text}"`);
+      if (d.offscreen) {
+        lines.push(`【画外音】${d.characterName}: "${d.text}"`);
+      } else {
+        const label = d.visualHint ? `${d.characterName}（${d.visualHint}）` : d.characterName;
+        lines.push(`【对白口型】${label}: "${d.text}"`);
+      }
     }
   }
 
