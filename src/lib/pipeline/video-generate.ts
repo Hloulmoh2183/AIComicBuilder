@@ -4,6 +4,7 @@ import { shots, characters, storyboardVersions } from "@/lib/db/schema";
 import { resolveVideoProvider } from "@/lib/ai/provider-factory";
 import type { ModelConfigPayload } from "@/lib/ai/provider-factory";
 import { buildVideoPrompt } from "@/lib/ai/prompts/video-generate";
+import { getModelMaxDuration } from "@/lib/ai/model-limits";
 import { eq } from "drizzle-orm";
 import type { Task } from "@/lib/task-queue";
 
@@ -41,6 +42,10 @@ export async function handleVideoGenerate(task: Task) {
   const versionedUploadDir = await getVersionedUploadDirFromPipeline(shot.versionId);
   const videoProvider = resolveVideoProvider(payload.modelConfig, versionedUploadDir);
 
+  const videoModelId = payload.modelConfig?.video?.modelId;
+  const modelMaxDuration = getModelMaxDuration(videoModelId);
+  const effectiveDuration = Math.min(shot.duration ?? 10, modelMaxDuration);
+
   await db
     .update(shots)
     .set({ status: "generating" })
@@ -52,14 +57,14 @@ export async function handleVideoGenerate(task: Task) {
     cameraDirection: shot.cameraDirection || "static",
     startFrameDesc: shot.startFrameDesc ?? undefined,
     endFrameDesc: shot.endFrameDesc ?? undefined,
-    duration: shot.duration ?? 10,
+    duration: effectiveDuration,
   });
 
   const result = await videoProvider.generateVideo({
     firstFrame: shot.firstFrame,
     lastFrame: shot.lastFrame,
     prompt,
-    duration: shot.duration ?? 10,
+    duration: effectiveDuration,
     ratio: payload.ratio ?? "16:9",
   });
 
