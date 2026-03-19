@@ -134,11 +134,16 @@ export function ShotDrawer({
   const localGenerating = generatingFrames || generatingSceneFrame || generatingVideo || generatingPrompt || rewritingText;
 
   async function patchShot(fields: Record<string, unknown>) {
-    await apiFetch(`/api/projects/${projectId}/shots/${shot!.id}`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(fields),
-    });
+    if (!shot) return;
+    try {
+      await apiFetch(`/api/projects/${projectId}/shots/${shot.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(fields),
+      });
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : t("common.generationFailed"));
+    }
   }
 
   async function handleGenerateFrames() {
@@ -157,8 +162,9 @@ export function ShotDrawer({
       onUpdate();
     } catch (err) {
       toast.error(err instanceof Error ? err.message : t("common.generationFailed"));
+    } finally {
+      setGeneratingFrames(false);
     }
-    setGeneratingFrames(false);
   }
 
   async function handleGenerateSceneFrame() {
@@ -177,8 +183,9 @@ export function ShotDrawer({
       onUpdate();
     } catch (err) {
       toast.error(err instanceof Error ? err.message : t("common.generationFailed"));
+    } finally {
+      setGeneratingSceneFrame(false);
     }
-    setGeneratingSceneFrame(false);
   }
 
   async function handleGenerateVideoPrompt() {
@@ -196,8 +203,9 @@ export function ShotDrawer({
       onUpdate();
     } catch (err) {
       toast.error(err instanceof Error ? err.message : t("common.generationFailed"));
+    } finally {
+      setGeneratingPrompt(false);
     }
-    setGeneratingPrompt(false);
   }
 
   async function handleGenerateVideo() {
@@ -216,8 +224,9 @@ export function ShotDrawer({
       onUpdate();
     } catch (err) {
       toast.error(err instanceof Error ? err.message : t("common.generationFailed"));
+    } finally {
+      setGeneratingVideo(false);
     }
-    setGeneratingVideo(false);
   }
 
   async function handleRewriteText() {
@@ -235,8 +244,9 @@ export function ShotDrawer({
       onUpdate();
     } catch (err) {
       toast.error(err instanceof Error ? err.message : t("common.generationFailed"));
+    } finally {
+      setRewritingText(false);
     }
-    setRewritingText(false);
   }
 
   const frameAssets = generationMode === "reference"
