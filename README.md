@@ -1,12 +1,14 @@
 # AI Comic Builder
 
-> v0.1.0
+> v0.2.0
 
 AI 驱动的漫剧生成器 — 从剧本到动画视频的全自动流水线。
 
 添加飞书群：
 
-![飞书群](images/lark-chat.png) ![飞书群2](images/lark-chat2.png)
+| 飞书群 | 飞书群2 |
+|:---:|:---:|
+| ![飞书群](images/lark-chat.png) | ![飞书群2](images/lark-chat2.png) |
 
 本网站全程由 AI 驱动开发， 开发指南：https://github.com/twwch/vibe-coding
 
@@ -16,7 +18,7 @@ AI 驱动的漫剧生成器 — 从剧本到动画视频的全自动流水线。
 
 - **剧本创作** — 手动编写或 AI 辅助生成剧本
 - **角色提取** — AI 自动从剧本中提取角色并生成详细视觉描述
-- **角色三视图** — 为每个角色生成参考图，确保后续帧画面一致性
+- **角色四视图** — 为每个角色生成四视图参考图（正面/四分之三/侧面/背面），确保后续帧画面一致性
 - **智能分镜** — AI 将剧本拆解为专业镜头列表（含构图、灯光、运镜指令）
 - **首尾帧生成** — 为每个镜头生成起始帧和结束帧关键画面（首尾帧模式 / 场景参考帧模式）
 - **视频提示词** — AI 基于分镜描述和参考帧自动生成视频提示词，支持直接编辑
@@ -26,7 +28,9 @@ AI 驱动的漫剧生成器 — 从剧本到动画视频的全自动流水线。
 - **帧图管理** — 生成帧支持手动上传替换及一键清除
 - **资源下载** — 支持最终视频下载及全部素材打包下载
 - **多语言** — 中文 / English / 日本語 / 한국어
-- **多模型** — 支持 OpenAI、Gemini、Seedance 等多家 AI 供应商，可按项目配置
+- **风格自适应** — 自动识别剧本风格（动漫/写实等），角色四视图与首尾帧生成均匹配对应风格
+- **视频比例** — 支持 16:9 / 9:16 / 1:1 / 自适应比例，首尾帧与视频生成统一比例
+- **多模型** — 支持 OpenAI、Gemini、Kling、Seedance、Veo 等多家 AI 供应商，可按项目配置
 
 ## 技术栈
 
@@ -37,8 +41,8 @@ AI 驱动的漫剧生成器 — 从剧本到动画视频的全自动流水线。
 | 国际化 | next-intl |
 | 数据库 | SQLite + Drizzle ORM |
 | AI 文本 | OpenAI / Gemini (via AI SDK) |
-| AI 图像 | OpenAI DALL-E / Gemini Imagen |
-| AI 视频 | Seedance (Volcengine Ark) |
+| AI 图像 | OpenAI DALL-E / Gemini Imagen / Kling |
+| AI 视频 | Seedance / Kling / Veo |
 | 视频处理 | FFmpeg (fluent-ffmpeg) |
 | 包管理 | pnpm |
 
@@ -124,7 +128,7 @@ docker build -t ai-comic-builder .
 ## 生成流水线
 
 ```
-剧本输入 → 剧本解析 → 角色提取 → 角色三视图
+剧本输入 → 剧本解析 → 角色提取 → 角色四视图
                                       ↓
                                    智能分镜
                                       ↓
@@ -137,7 +141,7 @@ docker build -t ai-comic-builder .
                                  视频合成 + 字幕
 ```
 
-每个阶段支持单独触发或批量生成，用户可完全控制流水线节奏。分镜页提供列表视图和看板视图，看板按生成进度自动分列。
+每个阶段支持单独触发或批量生成，用户可完全控制流水线节奏。分镜页提供列表视图和看板视图，看板按生成进度自动分列。支持分镜版本管理，可创建多个版本进行对比迭代。
 
 ## 项目结构
 
@@ -183,6 +187,10 @@ src/
 |:---:|:---:|---:|
 | ![角色解析](images/demo/角色解析.png) | ![分镜](images/demo/分镜.png) | ![分镜看板](images/demo/分镜看板.png) |
 
+| 看板 | 看板详情 |
+|:---:|:---:|
+| ![看板](images/demo/看板.png) | ![看板详情](images/demo/看板详情.png) |
+
 | 预览 | 模型配置 |
 |:---:|:---:|
 | ![预览](images/demo/预览.png) | ![模型配置](images/demo/模型配置.png) |
@@ -201,7 +209,9 @@ https://www.bilibili.com/video/BV1hTw1zAEgY/
 
 最新版生成
 
-https://www.bilibili.com/video/BV1WGAPzrEs1/
+[《拳魂·最后一回合》-seedance1.5](https://www.bilibili.com/video/BV1WGAPzrEs1/)
+
+[《拳魂·最后一回合》-seedance2](https://www.bilibili.com/video/BV1fVAuzLEAX/)
 
 
 ## License
